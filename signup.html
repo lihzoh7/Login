@@ -1,42 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>Signup</title></head>
+<body>
+<h2>Create Account</h2>
+<input id="email">
+<input id="password" type="password">
+<button id="signup">Signup</button>
+
 <script type="module">
-import { auth, db } from "./firebase.js";
-import { createUserWithEmailAndPassword } from
-"https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { ref, get, set } from
-"https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { auth } from "./firebase.js";
+import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-window.submitSignup = async () => {
-  if (password.value.length < 8) {
-    alert("Password must be 8+ characters");
-    return;
-  }
-
-  const idSnap = await get(ref(db, "idIndex/" + idNumber.value));
-  if (idSnap.exists()) {
-    alert("ID number already exists");
-    return;
-  }
-
-  const cred = await createUserWithEmailAndPassword(
-    auth, email.value, password.value
-  );
-
-  const uid = cred.user.uid;
-
-  await set(ref(db, "users/" + uid), {
-    personal: {
-      name: name.value,
-      surname: surname.value,
-      idNumber: idNumber.value,
-      email: email.value
-    },
-    bank: {},
-    wallet: { balance: 0, lives: 0 }
-  });
-
-  await set(ref(db, "idIndex/" + idNumber.value), uid);
-
-  alert("Registered");
-  location.href = "index.html";
+signup.onclick=()=> {
+  createUserWithEmailAndPassword(auth,email.value,password.value)
+    .then(()=>location.href="https://lihzoh7.github.io/Main-Menu/")
+    .catch(e=>alert(e.message));
 };
 </script>
+</body>
+</html>
