@@ -1,0 +1,16 @@
+<script type="module">
+import { db } from "./firebase.js";
+import { push, ref } from
+"https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+function sendQuery() {
+  push(ref(db,"queries"),{
+    name:name.value,
+    surname:surname.value,
+    id:id.value,
+    message:query.value,
+    time:Date.now()
+  });
+  alert("Sent");
+}
+</script>
