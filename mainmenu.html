@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Messages</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #6a0dad;
+  color: white;
+}
+
+header {
+  padding: 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.message {
+  background: rgba(255,255,255,0.15);
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.message.unread {
+  font-weight: bold;
+}
+
+.message.read {
+  opacity: 0.7;
+}
+
+.message-time {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.message-body {
+  display: none;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.delete {
+  float: right;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>✉️ Messages</header>
+<div id="messages"></div>
+
+<script type="module">
+import { auth, db } from "../firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+const messagesDiv = document.getElementById("messages");
+
+// AUTH GUARD
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.href = "../index.html";
+    return;
+  }
+
+  const msgRef = ref(db, "messages/" + user.uid);
+
+  onValue(msgRef, snap => {
+    messagesDiv.innerHTML = "";
+
+    if (!snap.exists()) {
+      messagesDiv.innerHTML = "<p style='text-align:center'>No messages</p>";
+      return;
+    }
+
+    const data = snap.val();
+    const sorted = Object.entries(data)
+      .sort((a,b) => b[1].timestamp - a[1].timestamp);
+
+    sorted.forEach(([id, msg]) => {
+      const div = document.createElement("div");
+      div.className = "message " + (msg.read ? "read" : "unread");
+
+      div.innerHTML = `
+        <span class="delete">🚮</span>
+        <div>${msg.title}</div>
+        <div class="message-time">${new Date(msg.timestamp).toLocaleString()}</div>
+        <div class="message-body">${msg.body}</div>
+      `;
+
+      // OPEN MESSAGE
+      div.onclick = () => {
+        div.querySelector(".message-body").style.display = "block";
+        update(ref(db, `messages/${user.uid}/${id}`), { read: true });
+      };
+
+      // DELETE
+      div.querySelector(".delete").onclick = e => {
+        e.stopPropagation();
+        remove(ref(db, `messages/${user.uid}/${id}`));
+      };
+
+      messagesDiv.appendChild(div);
+    });
+  });
+});
+</script>
+
+</body>
+
+</html>
